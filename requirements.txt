@@ -1,0 +1,32 @@
+# Graphify-Repograph Agent — Python dependencies
+# Install: pip install -r requirements.txt
+
+# ── FastAPI server ────────────────────────────────────────────────────────────
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+
+# ── Google Gemma 4 / Gemini API ───────────────────────────────────────────────
+google-genai>=2.0.0
+
+# ── Real repograph (Member 1 upstream) ───────────────────────────────────────
+# Install from forked repo (editable):
+#   pip install -e /path/to/repograph-upstream
+# OR from PyPI:
+repograph-codeintel>=0.1.2
+
+# ── tree-sitter (repograph requires these) ────────────────────────────────────
+tree-sitter>=0.23
+tree-sitter-python>=0.23
+tree-sitter-javascript>=0.23
+tree-sitter-typescript>=0.23
+
+# ── Graph + Visualization ─────────────────────────────────────────────────────
+networkx>=3.2.0
+matplotlib>=3.8.0
+
+# ── Pydantic ─────────────────────────────────────────────────────────────────
+pydantic>=2.8.0
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+requests>=2.31.0
