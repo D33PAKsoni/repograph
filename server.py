@@ -103,11 +103,14 @@ async def analyze_code(request: AnalyzeRequest):
             model_name=request.model_name
         )
 
+        # Graphify schema uses "graph" for metadata (schema_version:1)
+        graph_meta = graph_context.get("graph", graph_context.get("stats", {}))
+
         return AnalyzeResponse(
             review=review_result,
             graph=graph_context,
             graph_image_b64=graph_image_b64,
-            stats=graph_context.get("stats", {})
+            stats=graph_meta
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Pipeline error: {str(e)}")
@@ -633,10 +636,12 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       const graph = data.graph;
       const stats = data.stats || {};
 
-      // Update counters
+      // Update counters — Graphify schema uses 'links' not 'edges'
       document.getElementById('stat-nodes').innerText = graph.nodes ? graph.nodes.length : 0;
-      document.getElementById('stat-edges').innerText = graph.edges ? graph.edges.length : 0;
-      document.getElementById('stat-blast').innerText = stats.blast_radius_score || review.impact_rating;
+      const links = graph.links || graph.edges || [];
+      document.getElementById('stat-edges').innerText = links.length;
+      document.getElementById('stat-blast').innerText =
+        stats.blast_radius_score || (graph.graph && graph.graph.blast_radius_score) || review.impact_rating;
 
       // Update Impact Rating Gauge
       const rating = review.impact_rating || 1;
@@ -678,7 +683,8 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       const tooltip = d3.select("#tooltip");
 
       const nodes = (graphData.nodes || []).map(d => ({ ...d }));
-      const edges = (graphData.edges || []).map(d => ({ ...d }));
+      // Graphify real schema uses 'links'; fall back to 'edges' for compat
+      const edges = (graphData.links || graphData.edges || []).map(d => ({ ...d }));
 
       const g = svg.append("g");
 
@@ -719,7 +725,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
         .data(edges)
         .enter().append("line")
         .attr("stroke-width", 1.5)
-        .attr("marker-end", d => "url(#arrow-" + (d.type || "calls") + ")");
+        .attr("marker-end", d => "url(#arrow-" + (d.relation || d.type || "calls") + ")");
 
       // Draw Nodes
       const node = g.append("g")
